@@ -41,7 +41,6 @@ exports.handler = async (event) => {
     }
 
     let body;
-    console.log("body", event.body);
     try {
       body = JSON.parse(event.body || "{}");
     } catch (err) {
