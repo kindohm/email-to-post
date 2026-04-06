@@ -22,7 +22,7 @@ exports.handler = async (event) => {
     const githubBranch = process.env.GITHUB_BRANCH || "main";
 
     // const imageDir = process.env.BLOG_IMAGE_DIR || "src/img/uploads";
-    const postsDir = process.env.BLOG_POST_DIR || "src/posts";
+    const postsDir = process.env.BLOG_POST_DIR || "posts";
     const imageWidth = Number(process.env.IMAGE_WIDTH || 1600);
 
     console.log("read all secrets");
