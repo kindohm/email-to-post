@@ -24,7 +24,7 @@ exports.handler = async (event) => {
     const postsDir = process.env.BLOG_POST_DIR || "src/posts";
     const imageWidth = Number(process.env.IMAGE_WIDTH || 1600);
 
-    if (/*!secret ||*/ !githubToken || !githubOwner || !githubRepo) {
+    if (!secret || !githubToken || !githubOwner || !githubRepo) {
       console.error("MISSING REQUIRED ENVIRONMENT VARIABLES");
       return json(500, { error: "Missing required environment variables" });
     }
