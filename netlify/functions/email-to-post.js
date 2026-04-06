@@ -108,6 +108,8 @@ exports.handler = async (event) => {
       from,
     });
 
+    console.log("created post markdown");
+
     await createGithubFile({
       owner: githubOwner,
       repo: githubRepo,
@@ -136,6 +138,7 @@ exports.handler = async (event) => {
       postRepoPath,
     });
   } catch (err) {
+    console.log("error?");
     console.error(err);
     return json(500, {
       error: "Unhandled error",
@@ -241,6 +244,7 @@ async function createGithubFile({
   message,
   token,
 }) {
+  console.log("creating file in github at path:", path);
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(
     path,
   ).replace(/%2F/g, "/")}`;
