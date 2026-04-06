@@ -41,11 +41,14 @@ exports.handler = async (event) => {
     }
 
     let body;
+    console.log("body", event.body);
     try {
       body = JSON.parse(event.body || "{}");
     } catch (err) {
       return json(400, { error: "Invalid JSON body" });
     }
+
+    console.log("got body");
 
     const from = extractFromEmail(body.From);
     if (allowedFrom.length > 0 && !allowedFrom.includes(from)) {
