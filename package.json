@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "build": "echo built!"
+  },
   "dependencies": {
     "sharp": "^0.34.5",
     "slugify": "^1.6.9"
