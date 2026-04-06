@@ -4,6 +4,7 @@ const crypto = require("crypto");
 
 exports.handler = async (event) => {
   try {
+    console.log("HANDLER");
     if (event.httpMethod !== "POST") {
       return json(405, { error: "Method not allowed" });
     }
@@ -24,6 +25,7 @@ exports.handler = async (event) => {
     const imageWidth = Number(process.env.IMAGE_WIDTH || 1600);
 
     if (!secret || !githubToken || !githubOwner || !githubRepo) {
+      console.error("MISSING REQUIRED ENVIRONMENT VARIABLES");
       return json(500, { error: "Missing required environment variables" });
     }
 
