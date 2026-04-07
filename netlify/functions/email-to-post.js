@@ -93,7 +93,7 @@ exports.handler = async (event) => {
     const titleBase =
       subject || stripExtension(imageAttachment.Name) || "Photo Post";
     // const slug = uniqueSlug(titleBase, now);
-    const slug = `${yyyy}-${mm}-${dd}-${titleBase}`;
+    const slug = `${slugify(`${yyyy}-${mm}-${dd}-${titleBase}`)}`;
 
     const imageFilename = `${slugify(titleBase)}.jpg`;
     // const imageRepoPath = `${imageDir}/${yyyy}/${mm}/${imageFilename}`;
