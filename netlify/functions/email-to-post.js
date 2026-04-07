@@ -63,27 +63,31 @@ exports.handler = async (event) => {
       isSupportedImage(att.ContentType, att.Name),
     );
 
-    if (!imageAttachment) {
-      return json(400, { error: "No supported image attachment found" });
+    // if (!imageAttachment) {
+    //   return json(400, { error: "No supported image attachment found" });
+    // }
+
+    // if (!imageAttachment.Content) {
+    //   return json(400, { error: "Attachment content missing" });
+    // }
+
+    let resized = null;
+
+    if (imageAttachment) {
+      const originalBuffer = Buffer.from(imageAttachment.Content, "base64");
+
+      resized = await sharp(originalBuffer)
+        .rotate()
+        .resize({
+          width: imageWidth,
+          withoutEnlargement: true,
+        })
+        .jpeg({
+          quality: 82,
+          mozjpeg: true,
+        })
+        .toBuffer();
     }
-
-    if (!imageAttachment.Content) {
-      return json(400, { error: "Attachment content missing" });
-    }
-
-    const originalBuffer = Buffer.from(imageAttachment.Content, "base64");
-
-    const resized = await sharp(originalBuffer)
-      .rotate()
-      .resize({
-        width: imageWidth,
-        withoutEnlargement: true,
-      })
-      .jpeg({
-        quality: 82,
-        mozjpeg: true,
-      })
-      .toBuffer();
 
     const now = new Date();
     const yyyy = now.getUTCFullYear();
@@ -107,7 +111,7 @@ exports.handler = async (event) => {
     const postMarkdown = buildMarkdown({
       title: titleBase,
       date: now.toISOString(),
-      imagePath: imageWebPath,
+      imagePath: resized ? imageWebPath : null,
       alt,
       caption,
       from,
@@ -115,15 +119,17 @@ exports.handler = async (event) => {
 
     console.log("created post markdown");
 
-    await createGithubFile({
-      owner: githubOwner,
-      repo: githubRepo,
-      branch: githubBranch,
-      path: imageRepoPath,
-      contentBuffer: resized,
-      message: `Add image ${imageFilename} from email`,
-      token: githubToken,
-    });
+    if (resized) {
+      await createGithubFile({
+        owner: githubOwner,
+        repo: githubRepo,
+        branch: githubBranch,
+        path: imageRepoPath,
+        contentBuffer: resized,
+        message: `Add image ${imageFilename} from email`,
+        token: githubToken,
+      });
+    }
 
     await createGithubFile({
       owner: githubOwner,
@@ -212,7 +218,7 @@ function uniqueSlug(title, now) {
   return `${base || "photo-post"}-${timePart}-${rand}`;
 }
 
-function buildMarkdown({ title, date, imagePath, alt, caption, from }) {
+function buildMarkdown({ title, date, imagePath, alt, text, from }) {
   const escapedTitle = yamlEscape(title);
   const escapedAlt = yamlEscape(alt);
   const escapedFrom = yamlEscape(from);
@@ -222,11 +228,14 @@ title: "${escapedTitle}"
 draft: true
 ---
 
-![${escapeMarkdown(alt)}](${imagePath})
-`;
 
-  if (caption) {
-    md += `\n${caption.trim()}\n`;
+${imagePath ? `![${escapeMarkdown(alt)}](${imagePath})` : ``}
+
+
+ `;
+
+  if (text) {
+    md += `\n${text.trim()}\n`;
   }
 
   return md;
