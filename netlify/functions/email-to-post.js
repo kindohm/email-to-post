@@ -100,19 +100,17 @@ exports.handler = async (event) => {
       from,
     });
 
-    await Promise.all(
-      processedImages.map(({ filename, buffer }) =>
-        createGithubFile({
-          owner: githubOwner,
-          repo: githubRepo,
-          branch: githubBranch,
-          path: `${postsDir}/${slug}/${filename}`,
-          contentBuffer: buffer,
-          message: `Add image ${filename} from email`,
-          token: githubToken,
-        }),
-      ),
-    );
+    for (const { filename, buffer } of processedImages) {
+      await createGithubFile({
+        owner: githubOwner,
+        repo: githubRepo,
+        branch: githubBranch,
+        path: `${postsDir}/${slug}/${filename}`,
+        contentBuffer: buffer,
+        message: `Add image ${filename} from email`,
+        token: githubToken,
+      });
+    }
 
     await createGithubFile({
       owner: githubOwner,
