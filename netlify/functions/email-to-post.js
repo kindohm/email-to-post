@@ -223,7 +223,7 @@ function buildMarkdown({ title, date, imagePath, alt, text, from }) {
 
   let md = `---
 title: "${escapedTitle}"
-draft: true
+draft: false
 ---
 ${imagePath ? `![${escapeMarkdown(alt)}](${imagePath})` : ``}
  `;
