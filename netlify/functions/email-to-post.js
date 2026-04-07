@@ -102,7 +102,7 @@ exports.handler = async (event) => {
 
     const alt = subject || "Image";
     const caption = firstNonEmpty(textBody, stripHtml(htmlBody), "");
-    const imageWebPath = `/${imageRepoPath.replace(/^src\//, "")}`;
+    const imageWebPath = imageFilename; // `/${imageRepoPath.replace(/^src\//, "")}`;
 
     const postMarkdown = buildMarkdown({
       title: titleBase,
