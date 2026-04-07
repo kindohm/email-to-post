@@ -105,7 +105,7 @@ exports.handler = async (event) => {
     const imageRepoPath = `${postsDir}/${slug}/${imageFilename}`;
 
     const alt = subject || "Image";
-    const caption = firstNonEmpty(textBody, stripHtml(htmlBody), "");
+    const text = firstNonEmpty(textBody, stripHtml(htmlBody), "");
     const imageWebPath = imageFilename; // `/${imageRepoPath.replace(/^src\//, "")}`;
 
     const postMarkdown = buildMarkdown({
@@ -113,11 +113,9 @@ exports.handler = async (event) => {
       date: now.toISOString(),
       imagePath: resized ? imageWebPath : null,
       alt,
-      caption,
+      text,
       from,
     });
-
-    console.log("created post markdown");
 
     if (resized) {
       await createGithubFile({
