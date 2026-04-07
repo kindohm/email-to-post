@@ -95,7 +95,7 @@ exports.handler = async (event) => {
     // const slug = uniqueSlug(titleBase, now);
     const slug = `${yyyy}-${mm}-${dd}-${titleBase}`;
 
-    const imageFilename = `${titleBase}.jpg`;
+    const imageFilename = `${slugify(titleBase)}.jpg`;
     // const imageRepoPath = `${imageDir}/${yyyy}/${mm}/${imageFilename}`;
     const postRepoPath = `${postsDir}/${slug}/index.md`;
     const imageRepoPath = `${postsDir}/${slug}/${imageFilename}`;
