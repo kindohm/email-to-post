@@ -47,8 +47,6 @@ exports.handler = async (event) => {
       return json(400, { error: "Invalid JSON body" });
     }
 
-    console.log("got body");
-
     const from = extractFromEmail(body.From);
     if (allowedFrom.length > 0 && !allowedFrom.includes(from)) {
       return json(403, { error: `Sender not allowed: ${from}` });
@@ -59,35 +57,23 @@ exports.handler = async (event) => {
     const htmlBody = (body.HtmlBody || "").trim();
     const attachments = Array.isArray(body.Attachments) ? body.Attachments : [];
 
-    const imageAttachment = attachments.find((att) =>
+    const imageAttachments = attachments.filter((att) =>
       isSupportedImage(att.ContentType, att.Name),
     );
 
-    // if (!imageAttachment) {
-    //   return json(400, { error: "No supported image attachment found" });
-    // }
-
-    // if (!imageAttachment.Content) {
-    //   return json(400, { error: "Attachment content missing" });
-    // }
-
-    let resized = null;
-
-    if (imageAttachment) {
-      const originalBuffer = Buffer.from(imageAttachment.Content, "base64");
-
-      resized = await sharp(originalBuffer)
-        .rotate()
-        .resize({
-          width: imageWidth,
-          withoutEnlargement: true,
-        })
-        .jpeg({
-          quality: 82,
-          mozjpeg: true,
-        })
-        .toBuffer();
-    }
+    const processedImages = await Promise.all(
+      imageAttachments.map(async (att, i) => {
+        const originalBuffer = Buffer.from(att.Content, "base64");
+        const resized = await sharp(originalBuffer)
+          .rotate()
+          .resize({ width: imageWidth, withoutEnlargement: true })
+          .jpeg({ quality: 82, mozjpeg: true })
+          .toBuffer();
+        const baseName = stripExtension(att.Name) || `image-${i + 1}`;
+        const filename = `${slugify(baseName)}.jpg`;
+        return { filename, buffer: resized };
+      }),
+    );
 
     const now = new Date();
     const yyyy = now.getUTCFullYear();
@@ -95,39 +81,38 @@ exports.handler = async (event) => {
     const dd = String(now.getUTCDate()).padStart(2, "0");
 
     const titleBase =
-      subject || stripExtension(imageAttachment.Name) || "Photo Post";
-    // const slug = uniqueSlug(titleBase, now);
+      subject ||
+      (imageAttachments[0] ? stripExtension(imageAttachments[0].Name) : null) ||
+      "Photo Post";
     const slug = `${slugify(`${yyyy}-${mm}-${dd}-${titleBase}`)}`;
 
-    const imageFilename = `${slugify(titleBase)}.jpg`;
-    // const imageRepoPath = `${imageDir}/${yyyy}/${mm}/${imageFilename}`;
     const postRepoPath = `${postsDir}/${slug}/index.md`;
-    const imageRepoPath = `${postsDir}/${slug}/${imageFilename}`;
 
     const alt = subject || "Image";
     const text = firstNonEmpty(textBody, stripHtml(htmlBody), "");
-    const imageWebPath = imageFilename; // `/${imageRepoPath.replace(/^src\//, "")}`;
 
     const postMarkdown = buildMarkdown({
       title: titleBase,
       date: now.toISOString(),
-      imagePath: resized ? imageWebPath : null,
+      imagePaths: processedImages.map((img) => img.filename),
       alt,
       text,
       from,
     });
 
-    if (resized) {
-      await createGithubFile({
-        owner: githubOwner,
-        repo: githubRepo,
-        branch: githubBranch,
-        path: imageRepoPath,
-        contentBuffer: resized,
-        message: `Add image ${imageFilename} from email`,
-        token: githubToken,
-      });
-    }
+    await Promise.all(
+      processedImages.map(({ filename, buffer }) =>
+        createGithubFile({
+          owner: githubOwner,
+          repo: githubRepo,
+          branch: githubBranch,
+          path: `${postsDir}/${slug}/${filename}`,
+          contentBuffer: buffer,
+          message: `Add image ${filename} from email`,
+          token: githubToken,
+        }),
+      ),
+    );
 
     await createGithubFile({
       owner: githubOwner,
@@ -143,7 +128,7 @@ exports.handler = async (event) => {
       ok: true,
       from,
       subject,
-      imageRepoPath,
+      imageCount: processedImages.length,
       postRepoPath,
     });
   } catch (err) {
@@ -216,17 +201,18 @@ function uniqueSlug(title, now) {
   return `${base || "photo-post"}-${timePart}-${rand}`;
 }
 
-function buildMarkdown({ title, date, imagePath, alt, text, from }) {
+function buildMarkdown({ title, date, imagePaths, alt, text }) {
   const escapedTitle = yamlEscape(title);
-  const escapedAlt = yamlEscape(alt);
-  const escapedFrom = yamlEscape(from);
 
   let md = `---
 title: "${escapedTitle}"
 draft: false
 ---
-${imagePath ? `![${escapeMarkdown(alt)}](${imagePath})` : ``}
- `;
+`;
+
+  for (const imagePath of imagePaths) {
+    md += `\n![${escapeMarkdown(alt)}](${imagePath})\n`;
+  }
 
   if (text) {
     md += `\n${text.trim()}\n`;
