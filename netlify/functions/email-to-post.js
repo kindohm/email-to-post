@@ -4,7 +4,6 @@ const crypto = require("crypto");
 
 exports.handler = async (event) => {
   try {
-    console.log("HANDLER");
     if (event.httpMethod !== "POST") {
       console.warn("METHOD NOT ALLOWED", event.httpMethod);
       return json(405, { error: "Method not allowed" });
@@ -24,8 +23,6 @@ exports.handler = async (event) => {
     // const imageDir = process.env.BLOG_IMAGE_DIR || "src/img/uploads";
     const postsDir = process.env.BLOG_POST_DIR || "posts";
     const imageWidth = Number(process.env.IMAGE_WIDTH || 1600);
-
-    console.log("read all secrets");
 
     if (!secret || !githubToken || !githubOwner || !githubRepo) {
       console.error("MISSING REQUIRED ENVIRONMENT VARIABLES");
@@ -130,7 +127,6 @@ exports.handler = async (event) => {
       postRepoPath,
     });
   } catch (err) {
-    console.log("error?");
     console.error(err);
     return json(500, {
       error: "Unhandled error",
@@ -236,7 +232,6 @@ async function createGithubFile({
   message,
   token,
 }) {
-  console.log("creating file in github at path:", path);
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(
     path,
   ).replace(/%2F/g, "/")}`;
