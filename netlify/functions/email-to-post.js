@@ -225,11 +225,7 @@ function buildMarkdown({ title, date, imagePath, alt, text, from }) {
 title: "${escapedTitle}"
 draft: true
 ---
-
-
 ${imagePath ? `![${escapeMarkdown(alt)}](${imagePath})` : ``}
-
-
  `;
 
   if (text) {
