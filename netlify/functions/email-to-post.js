@@ -34,6 +34,7 @@ exports.handler = async (event) => {
     // /.netlify/functions/email-to-post?secret=YOUR_SECRET
     const qs = event.queryStringParameters || {};
     if (qs.secret !== secret) {
+      console.error("unauthorized, invalid secret!", equal.secret);
       return json(401, { error: "Unauthorized" });
     }
 
@@ -41,11 +42,13 @@ exports.handler = async (event) => {
     try {
       body = JSON.parse(event.body || "{}");
     } catch (err) {
+      console.error("invalid JSON body", event.body);
       return json(400, { error: "Invalid JSON body" });
     }
 
     const from = extractFromEmail(body.From);
     if (allowedFrom.length > 0 && !allowedFrom.includes(from)) {
+      console.error("sender not allowed", from);
       return json(403, { error: `Sender not allowed: ${from}` });
     }
 
@@ -127,6 +130,7 @@ exports.handler = async (event) => {
       postRepoPath,
     });
   } catch (err) {
+    console.error("unknown error :(");
     console.error(err);
     return json(500, {
       error: "Unhandled error",
