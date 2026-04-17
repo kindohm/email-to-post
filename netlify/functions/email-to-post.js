@@ -57,9 +57,13 @@ exports.handler = async (event) => {
     const htmlBody = (body.HtmlBody || "").trim();
     const attachments = Array.isArray(body.Attachments) ? body.Attachments : [];
 
+    console.log("num attachments:", attachments.length);
+
     const imageAttachments = attachments.filter((att) =>
       isSupportedImage(att.ContentType, att.Name),
     );
+
+    console.log("supported image attachments:", imageAttachments.length);
 
     const processedImages = await Promise.all(
       imageAttachments.map(async (att, i) => {
@@ -156,6 +160,8 @@ function extractFromEmail(fromField) {
 function isSupportedImage(contentType = "", filename = "") {
   const ct = contentType.toLowerCase();
   const name = filename.toLowerCase();
+
+  console.log("ct:", ct, "name:", name);
 
   return (
     ct === "image/jpeg" ||
