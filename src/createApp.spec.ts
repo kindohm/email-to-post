@@ -36,7 +36,7 @@ describe("createApp", () => {
     const res = await requestApp("GET", "/health");
 
     expect(res._getStatusCode()).toBe(200);
-    expect(res._getJSONData()).toEqual({ ok: true });
+    expect(res._getJSONData()).toEqual({ message: "healthy" });
   });
 
   it("routes POST /email-to-post to the email handler", async () => {

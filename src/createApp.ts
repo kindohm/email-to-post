@@ -7,7 +7,7 @@ export const createApp = (): express.Express => {
   app.use(express.json({ limit: "25mb" }));
 
   app.get("/health", (_req, res) => {
-    res.status(200).json({ ok: true });
+    res.status(200).json({ message: "healthy" });
   });
 
   app.post("/email-to-post", emailToPostHandler);
