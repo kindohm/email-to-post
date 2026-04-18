@@ -1,9 +1,26 @@
 {
+  "name": "email-to-post",
   "scripts": {
-    "build": "echo built!"
+    "dev": "tsx src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
     "sharp": "^0.34.5",
     "slugify": "^1.6.9"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.2",
+    "jest": "^30.3.0",
+    "node-mocks-http": "^1.17.2",
+    "ts-jest": "^29.4.9",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }
