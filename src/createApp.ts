@@ -1,5 +1,6 @@
 import express, { type ErrorRequestHandler } from "express";
 import { emailToPostHandler } from "./routes/emailToPost";
+import { loadConfig } from "./config/env";
 
 export const createApp = (): express.Express => {
   const app = express();
@@ -7,7 +8,16 @@ export const createApp = (): express.Express => {
   app.use(express.json({ limit: "25mb" }));
 
   app.get("/health", (_req, res) => {
-    res.status(200).json({ message: "healthy" });
+    try {
+      // force config check
+      loadConfig();
+      res.status(200).json({ message: "healthy" });
+    } catch (err) {
+      res
+        .status(200)
+        // @ts-expect-error its ok
+        .json({ message: `unhealthy: ${err?.message ?? "unknown error"}` });
+    }
   });
 
   app.post("/email-to-post", emailToPostHandler);
